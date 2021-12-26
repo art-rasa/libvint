@@ -61,7 +61,6 @@ vint vint_add(vint vnum_a, vint vnum_b);
  * Shifts the bits of a vint variable. Positive amount signifies left
  * shifting and negative right shifting. 
  */
-//TODO
 void vint_bitshift(vint * vnum, int amount);
 
 /* 

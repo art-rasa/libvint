@@ -41,7 +41,8 @@ vint vint_from_uint(uint64_t value)
             /* Not enough vbytes. */
             if ((idx_vbyte + 1) > num_vbytes)
             {
-                ++num_vbytes;
+                //++num_vbytes;
+                num_vbytes = idx_vbyte + 1;
                 vint_resize(&v, num_vbytes);
             }
             
@@ -199,60 +200,128 @@ void vint_bitshift(vint * vnum, int amount)
 {
     bool is_ovf = false;
     bool is_end = false;
+    const bool is_right_shift = (amount < 0);
+    const bool is_left_shift = (amount > 0);
     int n_vbytes = 0;
     int idx_vbyte = 0;
     int current_length = 0;
     vbyte current_vbyte = 0;
+    int step = 0;
     
-    if ((vnum == NULL) or (*vnum == NULL))
+    /* Invalid input or nothing to do. */
+    if ((vnum == NULL) or (*vnum == NULL) or (amount == 0))
     {
         return;
     }
     
     n_vbytes = vint_get_size(*vnum);
-    
     current_length = n_vbytes;
-    idx_vbyte = n_vbytes - 1;
+    
+    /* Where to begin. */
+    if (is_right_shift)
+    {
+        idx_vbyte = 0;
+        amount = -amount;
+        step = -1;
+    }
+    if (is_left_shift)
+    {
+        idx_vbyte = n_vbytes - 1;
+        step = 1;
+    }
+    
     while (amount > 0)
     {
         current_vbyte = (*vnum)[idx_vbyte];
         
         is_end = current_vbyte & END_MARKER;
-        current_vbyte <<= 1;
-        is_ovf = current_vbyte & END_MARKER;
+        
+        if (is_right_shift)
+        {
+            is_ovf = current_vbyte & 1;
+            current_vbyte >>= 1;
+            current_vbyte &= ~(END_MARKER >> 1);
+        }
+        if (is_left_shift)
+        {
+            current_vbyte <<= 1;
+            is_ovf = current_vbyte & END_MARKER;
+        }
         
         if (is_ovf and is_end)
         {
             (*vnum)[idx_vbyte] = current_vbyte & ~END_MARKER;
             (*vnum)[idx_vbyte] |= END_MARKER;
-            ++current_length;
-            vint_resize(vnum, current_length);
+            current_vbyte = (*vnum)[idx_vbyte];
             
-            (*vnum)[current_length - 1] |= 1;
+            /* Right shifts only need resizing if the end marker is the 
+               only 1-bit on the vbyte. */
+            if (is_left_shift or \
+               (is_right_shift and (current_vbyte == END_MARKER) and \
+               (current_length > 1)))
+            {
+                current_length += step;
+                vint_resize(vnum, current_length);
+            }
+            
+            /* Placing overflow bits.*/
+            if (is_left_shift)
+            {
+                (*vnum)[current_length - 1] |= 1;
+            }
+            
+            if (is_right_shift and (idx_vbyte > 1))
+            {
+                (*vnum)[current_length - 1] |= (END_MARKER >> 1);
+            }
+            
+            /* Making sure the final vbyte is always terminated. */
             (*vnum)[current_length - 1] |= END_MARKER;
         }
         else if (is_ovf and not is_end)
         {
             (*vnum)[idx_vbyte] = current_vbyte & ~END_MARKER;
-            (*vnum)[idx_vbyte + 1] |= 1;
+            
+            /* Placing overflow bits. */
+            if (is_left_shift)
+            {
+                (*vnum)[idx_vbyte + step] |= 1;
+            }
+            
+            if (is_right_shift and (idx_vbyte > 0))
+            {
+                (*vnum)[idx_vbyte + step] |= (END_MARKER >> 1);
+            }
         }
         else if (not is_ovf and is_end)
         {
+            /*current_vbyte &= ~(END_MARKER >> 1);*/
             (*vnum)[idx_vbyte] = current_vbyte & ~END_MARKER;
             (*vnum)[idx_vbyte] |= END_MARKER;
         }
-        else
+        else if (not is_ovf and not is_end)
         {
             (*vnum)[idx_vbyte] = current_vbyte;
             (*vnum)[idx_vbyte] &= ~END_MARKER;
         }
         
-        --idx_vbyte;
+        idx_vbyte -= step;
         
-        if (idx_vbyte < 0)
+        if (is_right_shift)
         {
-            idx_vbyte = current_length - 1;
-            --amount;
+            if (idx_vbyte >= current_length)
+            {
+                idx_vbyte = 0;
+                --amount;
+            }
+        }
+        if (is_left_shift)
+        {
+            if (idx_vbyte < 0)
+            {
+                idx_vbyte = current_length - 1;
+                --amount;
+            }
         }
     }
 }

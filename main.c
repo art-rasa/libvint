@@ -10,6 +10,7 @@ void test_deepcopy(void);
 void test_print_bits(void);
 void test_from_str(void);
 void test_bitshift(void);
+void test_runner_bitshift(uint64_t num, int shifts);
 
 int main(int argc, char * argv[])
 {
@@ -208,39 +209,16 @@ void test_from_str(void)
 
 void test_bitshift(void)
 {
-    vint v1 = vint_from_uint(64677154575);
-    vint v2 = vint_from_uint(1973790);
-    vint v3 = vint_from_uint(1);
-    
     spacer("Shifting bits");
     
-    printf("v1 (64677154575) is %d vbytes long before shift: \n", vint_get_size(v1));
-    vint_print_bits(v1);
-    puts("");
-    vint_bitshift(&v1, 1);
-    printf("...after 1 left-shift v1 is %d vbytes long: \n", vint_get_size(v1));
-    vint_print_bits(v1);
-    puts("\n");
-    
-    printf("v2 (1973790) is %d vbytes long before shift: \n", vint_get_size(v2));
-    vint_print_bits(v2);
-    puts("");
-    vint_bitshift(&v2, 1);
-    printf("...after 1 left-shift v2 is %d vbytes long: \n", vint_get_size(v2));
-    vint_print_bits(v2);
-    puts("\n");
-    
-    printf("v3 (1) is %d vbytes long before shift: \n", vint_get_size(v3));
-    vint_print_bits(v3);
-    puts("");
-    vint_bitshift(&v3, 142);
-    printf("..after 142 left-shifts v3 is %d vbytes long: \n", vint_get_size(v3));
-    vint_print_bits(v3);
-    puts("\n");
-    
-    vint_erase(v1);
-    vint_erase(v2);
-    vint_erase(v3);
+    test_runner_bitshift(64677154575UL, 1);
+    test_runner_bitshift(1973790UL, 1);
+    test_runner_bitshift(1UL, 142);
+    test_runner_bitshift(16UL, 13);
+    test_runner_bitshift(786432UL, -1);
+    test_runner_bitshift(64677154575UL, -1);
+    test_runner_bitshift(64677154575UL, -2);
+    test_runner_bitshift(64677154575UL, -3);
 }
 
 void spacer(char * title)
@@ -254,7 +232,27 @@ void spacer(char * title)
     puts("-------------------------------");
 }
 
-
+void test_runner_bitshift(uint64_t num, int shifts)
+{
+    vint v = vint_from_uint(num);
+    
+    printf("vint (%lu) is %d vbytes long before shift: \n", num, vint_get_size(v));
+    vint_print_bits(v);
+    puts("");
+    vint_bitshift(&v, shifts);
+    if (shifts >= 0)
+    {
+        printf("..after %d left-shifts vint is %d vbytes long: \n", shifts, vint_get_size(v));
+    }
+    else
+    {
+        printf("..after %d right-shifts vint is %d vbytes long: \n", -shifts, vint_get_size(v));
+    }
+    vint_print_bits(v);
+    puts("\n");
+    
+    vint_erase(v);
+}
 
 
 

@@ -69,7 +69,11 @@ void vint_bitshift(vint * vnum, int amount);
  */
 void vint_print_bits(vint vnum);
 
-
+/*
+ * Multiplies two vint variables. Result is returned as a new vint
+ * variable.
+ */
+vint vint_multiply(vint vnum_a, vint vnum_b);
 
 #endif
 

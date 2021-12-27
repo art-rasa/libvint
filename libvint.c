@@ -169,7 +169,7 @@ vint vint_add(vint vnum_a, vint vnum_b)
                 }
                 else if ((a and not b) or (not a and b))
                 {
-                    carry = false;
+                    carry = true;
                 }
                 else if (not a and not b)
                 {
@@ -331,6 +331,7 @@ int vint_deepcopy(vint * from, vint * to)
 {
     int idx = 0;
     int len = 0;
+    bool is_end = false;
     
     if ((from == NULL) or (*from == NULL) or (to == NULL))
     {
@@ -344,8 +345,13 @@ int vint_deepcopy(vint * from, vint * to)
     do
     {
         (*to)[idx] = (*from)[idx];
+        
+        if ((*from)[idx] & END_MARKER)
+        {
+            is_end = true;
+        }
         ++idx;
-    } while ( !((*from)[idx] & END_MARKER) );
+    } while (not is_end);
     
     return idx;
 }
@@ -426,7 +432,66 @@ void vint_print_bits(vint vnum)
 }
 
 
-
+vint vint_multiply(vint vnum_a, vint vnum_b)
+{
+    vint result = NULL;
+    vint tmp = NULL;
+    vint sum = NULL;
+    vint * multiplicand = NULL;
+    vint * multiplier = NULL;
+    int len_multiplicand = 0;
+    int len_multiplier = 0;
+    int n_vbyte = 0;
+    int n_bit = 0;
+    int shifts = 0;
+    
+    if ((vnum_a == NULL) or (vnum_b == NULL))
+    {
+        return NULL;
+    }
+    
+    len_multiplicand = vint_get_size(vnum_a);
+    len_multiplier = vint_get_size(vnum_b);
+    
+    multiplicand = &vnum_a;
+    multiplier = &vnum_b;
+    if (len_multiplicand < len_multiplier)
+    {
+        multiplicand = &vnum_b;
+        multiplier = &vnum_a;
+        
+        int tmp_len = len_multiplicand;
+        len_multiplicand = len_multiplier;
+        len_multiplier = tmp_len;
+    }
+    
+    /* Partial sums. */
+    result = vint_new();
+    for (n_vbyte = 0; n_vbyte < len_multiplier; n_vbyte++)
+    {
+        for (n_bit = 0; n_bit < BITS_PER_VBYTE; n_bit++)
+        {
+            if ( ((*multiplier)[n_vbyte] & (1 << n_bit)) )
+            {
+                tmp = vint_new();
+                
+                vint_deepcopy(multiplicand, &tmp);
+                
+                vint_bitshift(&tmp, shifts);
+                sum = vint_add(tmp, result);
+                
+                vint_deepcopy(&sum, &result);
+                
+                vint_erase(tmp);
+                vint_erase(sum);
+            }
+            
+            ++shifts;
+        }
+    }
+    
+    return result;
+}
 
 
 

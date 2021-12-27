@@ -26,8 +26,7 @@ After use, the memory taken by each `vint` variable should be freed with a corre
 
 ## Bugs, limitations
 
-Only unsigned integers are supported.  
-At the moment, libvint supports only addition and bitwise shifting.  
+Only unsigned integers are supported.
 Libvint is just a fun hobby project, and as such may contain bugs or errors. Use at your own risk.  
 
 ## License

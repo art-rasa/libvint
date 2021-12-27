@@ -10,7 +10,9 @@ void test_deepcopy(void);
 void test_print_bits(void);
 void test_from_str(void);
 void test_bitshift(void);
+void test_multiply(void);
 void test_runner_bitshift(uint64_t num, int shifts);
+void test_runner_multiply(uint64_t a, uint64_t b);
 
 int main(int argc, char * argv[])
 {
@@ -21,6 +23,7 @@ int main(int argc, char * argv[])
     test_print_bits();
     test_from_str();
     test_bitshift();
+    test_multiply();
     return 0;
 }
 
@@ -42,23 +45,41 @@ void test_addition(void)
 {
     vint v1 = vint_from_uint(127);
     vint v2 = vint_from_uint(127);
-    vint r = NULL;
+    vint v3 = vint_from_uint(11);
+    vint v4 = vint_from_uint(14);
+    vint r1 = NULL;
+    vint r2 = NULL;
     
     spacer("Addition");
     
     printf("v1 (127) is %d vbytes long. \n", vint_get_size(v1));
     vint_print_bits(v1);
-    puts("\n");
+    puts("");
     printf("v2 (127) is %d vbytes long. \n", vint_get_size(v2));
     vint_print_bits(v2);
+    puts("");
+    r1 = vint_add(v1, v2);
+    printf("r1 (127 + 127) is %d vbytes long. \n", vint_get_size(r1));
+    vint_print_bits(r1);
     puts("\n");
-    r = vint_add(v1, v2);
-    printf("r (127 + 127) is %d vbytes long. \n", vint_get_size(r));
-    vint_print_bits(r);
-    puts("\n");
+    
+    printf("v3 (11) is %d vbytes long. \n", vint_get_size(v3));
+    vint_print_bits(v3);
+    puts("");
+    printf("v4 (14) is %d vbytes long. \n", vint_get_size(v4));
+    vint_print_bits(v4);
+    puts("");
+    r2 = vint_add(v3, v4);
+    printf("r2 (11 + 14) is %d vbytes long. \n", vint_get_size(r2));
+    vint_print_bits(r2);
+    puts("");
+    
     vint_erase(v1);
     vint_erase(v2);
-    vint_erase(r);
+    vint_erase(v3);
+    vint_erase(v4);
+    vint_erase(r1);
+    vint_erase(r2);
 }
 
 void test_resize(void)
@@ -221,6 +242,19 @@ void test_bitshift(void)
     test_runner_bitshift(64677154575UL, -3);
 }
 
+void test_multiply(void)
+{
+    spacer("Multiply");
+    
+    test_runner_multiply(11UL, 14UL);
+    test_runner_multiply(8UL, 8UL);
+    test_runner_multiply(16UL, 1UL);
+    test_runner_multiply(8UL, 0UL);
+    test_runner_multiply(8UL, 3UL);
+    test_runner_multiply(8UL, 0UL);
+    test_runner_multiply(2863311530UL, 15658734UL);
+}
+
 void spacer(char * title)
 {
     puts("");
@@ -254,7 +288,35 @@ void test_runner_bitshift(uint64_t num, int shifts)
     vint_erase(v);
 }
 
-
+void test_runner_multiply(uint64_t a, uint64_t b)
+{
+    vint v1 = vint_from_uint(a);
+    vint v2 = vint_from_uint(b);
+    vint r_ab = NULL;
+    vint r_ba = NULL;
+    
+    printf("vint v1 (%lu) is %d bytes long: \n", a, vint_get_size(v1));
+    vint_print_bits(v1);
+    puts("");
+    printf("vint v2 (%lu) is %d bytes long: \n", b, vint_get_size(v2));
+    vint_print_bits(v2);
+    puts("");
+    
+    r_ab = vint_multiply(v1, v2);
+    printf("vint v1*v2 is %d bytes long: \n", vint_get_size(r_ab));
+    vint_print_bits(r_ab);
+    puts("");
+    
+    r_ba = vint_multiply(v2, v1);
+    printf("vint v2*v1 is %d bytes long: \n", vint_get_size(r_ba));
+    vint_print_bits(r_ba);
+    puts("\n");
+    
+    vint_erase(v1);
+    vint_erase(v2);
+    vint_erase(r_ab);
+    vint_erase(r_ba);
+}
 
 
 

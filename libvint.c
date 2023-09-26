@@ -115,7 +115,7 @@ vint vint_add(vint vnum_a, vint vnum_b)
     const int len_b = vint_get_size(vnum_b);
     const int total_vbytes = (len_a > len_b) ? len_a : len_b;
     vint result = vint_new();
-    int result_length = 1;
+    int result_length = /*1*/total_vbytes;
     int idx_vbyte = 0;
     bool carry = false;
     
@@ -123,6 +123,7 @@ vint vint_add(vint vnum_a, vint vnum_b)
     {
         return NULL;
     }
+    vint_resize(&result, result_length);
     
     carry = false;
     for (idx_vbyte = 0; idx_vbyte < total_vbytes; idx_vbyte++)

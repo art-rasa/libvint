@@ -11,6 +11,7 @@ void test_print_bits(void);
 void test_from_str(void);
 void test_bitshift(void);
 void test_multiply(void);
+void test_multiply_loop(uint64_t multiplier, int num_mults);
 void test_runner_bitshift(uint64_t num, int shifts);
 void test_runner_multiply(uint64_t a, uint64_t b);
 
@@ -24,6 +25,7 @@ int main(int argc, char * argv[])
     test_from_str();
     test_bitshift();
     test_multiply();
+    
     return 0;
 }
 
@@ -253,27 +255,39 @@ void test_multiply(void)
     test_runner_multiply(8UL, 3UL);
     test_runner_multiply(8UL, 0UL);
     test_runner_multiply(2863311530UL, 15658734UL);
+    test_runner_multiply(8192UL, 2UL);
     
+    test_multiply_loop(2UL, 17);
+    test_multiply_loop(7UL, 86);
+    test_multiply_loop(76689UL, 22);
+    test_multiply_loop(556405UL, 147);
+}
+
+void test_multiply_loop(uint64_t multiplier, int num_mults)
+{
+    const size_t len = 200;
+    char title[len];
+    snprintf(title, len, "Multiply \"1\" by \"%u\" in a loop %d times", \
+             multiplier, num_mults);
+    spacer(title);
+    
+    vint a = vint_from_uint(1UL);
+    vint b = vint_from_uint(multiplier);
+    
+    printf("vint a is originally %d vbytes long: \n", vint_get_size(a));
+    vint_print_bits(a);
+    puts("");
+    while (num_mults --> 0)
     {
-        const int num_mults = 100;
-        vint a = vint_from_uint(1UL);
-        vint b = vint_from_uint(3UL);
-        vint product = NULL;
-        printf("vint a is %d vbytes long: \n", vint_get_size(a));
-        vint_print_bits(a);
-        puts("");
-        for (int i = 0; i < num_mults; i++)
-        {
-            product = vint_multiply(a, b);
-            vint_deepcopy(product, &a);
-            vint_erase(product);
-        }
-        printf("vint a is %d vbytes long after %d multiplications: \n", vint_get_size(a), num_mults);
-        vint_print_bits(a);
-        puts("");
-        vint_erase(a);
-        vint_erase(b);
+        vint product = vint_multiply(a, b);
+        vint_deepcopy(&product, &a);
+        vint_erase(product);
     }
+    printf("vint a becomes %d vbytes long: \n", vint_get_size(a));
+    vint_print_bits(a);
+    puts("");
+    vint_erase(a);
+    vint_erase(b);
 }
 
 void spacer(char * title)

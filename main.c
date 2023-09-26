@@ -253,6 +253,27 @@ void test_multiply(void)
     test_runner_multiply(8UL, 3UL);
     test_runner_multiply(8UL, 0UL);
     test_runner_multiply(2863311530UL, 15658734UL);
+    
+    {
+        const int num_mults = 100;
+        vint a = vint_from_uint(1UL);
+        vint b = vint_from_uint(3UL);
+        vint product = NULL;
+        printf("vint a is %d vbytes long: \n", vint_get_size(a));
+        vint_print_bits(a);
+        puts("");
+        for (int i = 0; i < num_mults; i++)
+        {
+            product = vint_multiply(a, b);
+            vint_deepcopy(product, &a);
+            vint_erase(product);
+        }
+        printf("vint a is %d vbytes long after %d multiplications: \n", vint_get_size(a), num_mults);
+        vint_print_bits(a);
+        puts("");
+        vint_erase(a);
+        vint_erase(b);
+    }
 }
 
 void spacer(char * title)
